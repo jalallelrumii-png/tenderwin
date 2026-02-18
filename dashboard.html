@@ -2,139 +2,56 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Workstation - TenderWin Enterprise</title>
+    <title>TenderWin Workstation</title>
     <script src="https://cdn.jsdelivr.net/npm/appwrite@13.0.1"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #020617; color: #f8fafc; }
-        .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .btn-premium { background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); transition: all 0.3s ease; }
-        .btn-premium:hover { transform: translateY(-2px); box-shadow: 0 10px 20px -10px #2563eb; }
-    </style>
 </head>
-<body class="min-h-screen pb-20">
-    <nav class="glass sticky top-0 z-50 px-6 py-5 flex justify-between items-center">
-        <div class="flex items-center gap-2">
-            <div class="bg-blue-600 p-1.5 rounded-lg font-black text-[10px] text-white">TW</div>
-            <span class="font-black text-blue-400 tracking-tighter text-lg uppercase">TenderWin <span class="text-white">Enterprise</span></span>
-        </div>
-        <div class="flex items-center gap-4">
-            <span id="userLabel" class="text-[10px] font-bold text-slate-500 bg-slate-800/50 px-3 py-1 rounded-full border border-slate-700"></span>
-            <button onclick="logout()" class="text-[10px] font-black text-red-400 hover:text-red-300 uppercase">Logout</button>
-        </div>
-    </nav>
-
-    <main class="max-w-4xl mx-auto p-6 space-y-6 mt-4">
-        <div class="bg-slate-900/40 p-10 rounded-[3.5rem] border border-slate-800 shadow-2xl backdrop-blur-md">
-            <h2 class="text-2xl font-black mb-8 text-white flex items-center gap-3">
-                <span class="bg-blue-600 p-2.5 rounded-2xl shadow-lg shadow-blue-500/20 text-white">🚀</span> Workstation Utama
-            </h2>
-            
-            <div class="space-y-6">
-                <div>
-                    <label class="text-[10px] font-black text-blue-400 uppercase tracking-widest ml-2 mb-2 block">Judul Proyek / Pengadaan</label>
-                    <input id="title" type="text" placeholder="Masukkan Judul Tender..." class="w-full p-5 bg-slate-950/50 border border-slate-800 rounded-2xl outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all font-bold text-white placeholder-slate-700">
-                </div>
-
-                <div>
-                    <label class="text-[10px] font-black text-blue-400 uppercase tracking-widest ml-2 mb-2 block">Draft Spesifikasi Kasar</label>
-                    <textarea id="brief" rows="7" placeholder="Tulis rincian penawaran Anda di sini..." class="w-full p-5 bg-slate-950/50 border border-slate-800 rounded-2xl outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all resize-none text-white placeholder-slate-700"></textarea>
-                </div>
-                
-                <button id="btn" onclick="gas()" class="btn-premium w-full py-6 text-white rounded-[2rem] font-black text-xl shadow-xl active:scale-95">
-                    GENERATE PROPOSAL PROFESIONAL
-                </button>
-            </div>
+<body class="bg-slate-950 text-white p-6">
+    <div class="max-w-3xl mx-auto space-y-6">
+        <div class="bg-slate-900 p-10 rounded-[3rem] border border-slate-800">
+            <h1 class="text-2xl font-black text-blue-500 mb-6 uppercase tracking-tighter italic">TenderWin Engine v4</h1>
+            <input id="title" type="text" placeholder="Judul Proyek" class="w-full p-4 bg-slate-950 border border-slate-800 rounded-2xl mb-4 text-white font-bold">
+            <textarea id="brief" rows="6" placeholder="Rincian kasar proyek..." class="w-full p-4 bg-slate-950 border border-slate-800 rounded-2xl mb-6 text-white"></textarea>
+            <button id="btn" onclick="gas()" class="w-full py-5 bg-blue-600 rounded-[2rem] font-black text-xl shadow-lg shadow-blue-500/20 active:scale-95 transition-all">GENERATE PROPOSAL SENIOR</button>
         </div>
 
-        <div id="wait" class="hidden text-center py-12">
-            <div class="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
-            <p class="animate-pulse text-blue-400 font-black tracking-widest text-xs uppercase">TenderEngine v4 sedang menyusun narasi...</p>
+        <div id="wait" class="hidden text-center py-10 animate-pulse text-blue-400 font-bold uppercase text-xs tracking-widest">TenderEngine sedang mengonstruksi narasi strategis...</div>
+
+        <div id="resultArea" class="hidden bg-white text-slate-900 p-10 rounded-[3rem] shadow-2xl">
+            <div id="out" class="whitespace-pre-wrap leading-relaxed text-sm font-medium"></div>
         </div>
-        
-        <div id="resultArea" class="hidden animate-in fade-in slide-in-from-bottom-4 duration-500 bg-white text-slate-900 p-12 rounded-[3.5rem] shadow-2xl space-y-8">
-            <div class="flex justify-between items-center border-b border-slate-100 pb-6">
-                <div>
-                    <span class="text-[10px] font-black bg-emerald-100 text-emerald-600 px-4 py-1.5 rounded-full uppercase tracking-tighter">Draft Selesai Disusun</span>
-                </div>
-                <button onclick="copy()" class="text-xs font-black text-blue-600 hover:text-blue-800 flex items-center gap-2 uppercase">
-                    Salin Proposal 📋
-                </button>
-            </div>
-            <div id="out" class="text-base leading-relaxed whitespace-pre-wrap font-medium text-slate-800 text-justify"></div>
-        </div>
-    </main>
+    </div>
 
     <script>
-        const { Client, Functions, Databases, ID } = Appwrite;
-        const client = new Client().setEndpoint('https://sgp.cloud.appwrite.io/v1').setProject('tenderwin'); 
-        const functions = new Functions(client);
-        const db = new Databases(client);
-
-        const phone = localStorage.getItem('wa');
-        if (!phone) { window.location.href = 'index.html'; }
-        document.getElementById('userLabel').innerText = "VDR-" + phone.slice(-4); // Menampilkan 4 digit terakhir WA
+        const client = new Appwrite.Client().setEndpoint('https://sgp.cloud.appwrite.io/v1').setProject('tenderwin');
+        const functions = new Appwrite.Functions(client);
+        const db = new Appwrite.Databases(client);
 
         async function gas() {
             const title = document.getElementById('title').value;
             const brief = document.getElementById('brief').value;
-            const btn = document.getElementById('btn');
-
-            if(!title || !brief) return alert("Mohon lengkapi judul dan rincian!");
+            if(!title || !brief) return alert("Isi dulu anjing!");
 
             document.getElementById('wait').classList.remove('hidden');
             document.getElementById('resultArea').classList.add('hidden');
-            btn.disabled = true;
 
             try {
-                // PANGGIL FUNGSI APPWRITE DENGAN ID 'generateProposal'
-                // PROMPT AI CANGGIH ADA DI DALAM FUNGSI INI (BACKEND)
-                const execution = await functions.createExecution(
-                    'generateProposal', // Ini ID Function lo di Appwrite
-                    JSON.stringify({ title, brief })
-                );
+                // ID Function: generateProposal
+                const exec = await functions.createExecution('generateProposal', JSON.stringify({ title, brief }));
+                const res = JSON.parse(exec.responseBody);
 
-                const response = JSON.parse(execution.responseBody);
-                
-                if (response.success) {
-                    const hasilAI = response.proposal;
-                    document.getElementById('out').innerText = hasilAI;
+                if (res.success) {
+                    document.getElementById('out').innerText = res.proposal;
                     document.getElementById('resultArea').classList.remove('hidden');
-
-                    // Simpan ke Appwrite DB (pastikan atribut ada!)
-                    await db.createDocument(
-                        'main_db', 
-                        'proposals', 
-                        ID.unique(), 
-                        {
-                            nama_proposal: title,
-                            final_proposal: hasilAI,
-                            vendor_name: phone
-                        }
-                    );
-                } else {
-                    alert("Error dari AI / Fungsi: " + response.error);
-                }
-
-            } catch (e) { 
-                console.error(e);
-                alert("Kesalahan sistem: Pastikan Appwrite Function sudah deploy dan database siap!"); 
-            } finally { 
-                document.getElementById('wait').classList.add('hidden');
-                btn.disabled = false;
-            }
-        }
-
-        function copy() {
-            navigator.clipboard.writeText(document.getElementById('out').innerText);
-            alert("Tersalin!");
-        }
-
-        function logout() {
-            localStorage.clear();
-            window.location.href = 'index.html';
+                    
+                    await db.createDocument('main_db', 'proposals', Appwrite.ID.unique(), {
+                        nama_proposal: title,
+                        final_proposal: res.proposal,
+                        vendor_name: localStorage.getItem('wa') || "User"
+                    });
+                } else { alert("AI Gagal: " + res.error); }
+            } catch (e) { alert("Sistem Error: " + e.message); }
+            finally { document.getElementById('wait').classList.add('hidden'); }
         }
     </script>
 </body>
