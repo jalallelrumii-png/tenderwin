@@ -1,7 +1,7 @@
 {
   "name": "TenderWin AI v4",
   "short_name": "TenderWin",
-  "description": "SaaS Proposal Tender Generator",
+  "description": "Professional Proposal AI",
   "start_url": "index.html",
   "display": "standalone",
   "background_color": "#020617",
@@ -10,8 +10,7 @@
     {
       "src": "https://cdn-icons-png.flaticon.com/512/1087/1087080.png",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/png"
     }
   ]
 }
