@@ -1,84 +1,138 @@
-// --- 1. INISIALISASI KONEKSI APPWRITE ---
-const { Client, Databases, ID } = Appwrite;
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Workstation - TenderWin AI</title>
+    <script src="https://cdn.jsdelivr.net/npm/appwrite@13.0.1"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #020617; color: #f8fafc; }
+        .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.05); }
+    </style>
+</head>
+<body class="min-h-screen pb-20">
+    <nav class="glass sticky top-0 z-50 px-6 py-5 flex justify-between items-center">
+        <div class="flex items-center gap-2">
+            <div class="bg-blue-600 p-1.5 rounded-lg font-black text-[10px]">TW</div>
+            <span class="font-black text-blue-400 tracking-tighter text-lg">TenderWin <span class="text-white">AI</span></span>
+        </div>
+        <button onclick="logout()" class="text-[10px] font-black bg-red-500/10 text-red-500 px-4 py-2 rounded-full uppercase tracking-widest">Logout</button>
+    </nav>
 
-const client = new Client()
-    .setEndpoint('https://sgp.cloud.appwrite.io/v1') 
-    .setProject('tenderwin'); // Sesuaikan dengan Project ID di Dashboard Appwrite kamu
+    <main class="max-w-4xl mx-auto p-6 space-y-6">
+        <div class="bg-slate-900/50 p-8 rounded-[3rem] border border-slate-800 shadow-2xl">
+            <h2 class="text-xl font-black mb-6 text-white flex items-center gap-3">
+                <span class="bg-blue-500/20 p-2 rounded-xl text-blue-400">🚀</span> TenderEngine v4
+            </h2>
+            
+            <div class="space-y-4">
+                <input id="projName" type="text" placeholder="Judul Tender (Misal: Pengadaan Infrastruktur Jaringan)" class="w-full p-5 bg-slate-950 border border-slate-800 rounded-2xl outline-none focus:border-blue-500 transition-all font-bold text-white">
+                <textarea id="rawInput" rows="6" placeholder="Masukkan spesifikasi teknis kasar atau poin-poin penawaran Anda di sini..." class="w-full p-5 bg-slate-950 border border-slate-800 rounded-2xl outline-none focus:border-blue-500 transition-all resize-none text-white"></textarea>
+                
+                <button id="btnGen" onclick="generate()" class="w-full py-5 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-black text-xl shadow-lg shadow-blue-500/20 active:scale-95 transition-all">
+                    GENERATE PROPOSAL FORMAL
+                </button>
+            </div>
+        </div>
 
-const db = new Databases(client);
+        <div id="loader" class="hidden text-center py-10">
+            <div class="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p class="animate-pulse text-blue-400 font-bold">TenderEngine v4 sedang menyusun narasi profesional...</p>
+        </div>
+        
+        <div id="resultArea" class="hidden bg-white text-slate-900 p-10 rounded-[3rem] shadow-2xl space-y-6">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-4">
+                <span class="text-[10px] font-black bg-blue-100 text-blue-600 px-3 py-1 rounded-full uppercase tracking-tighter">Draft Proposal Senior Level</span>
+                <button onclick="copy()" class="text-xs font-black text-blue-600 hover:underline uppercase">Salin Dokumen</button>
+            </div>
+            <div id="output" class="text-sm leading-relaxed whitespace-pre-wrap font-medium text-slate-700"></div>
+        </div>
+    </main>
 
-// --- 2. FUNGSI UTAMA GENERATE & SIMPAN ---
-async function generate() {
-    const name = document.getElementById('projName').value;
-    const input = document.getElementById('rawInput').value;
-    const btn = document.getElementById('btnGen');
-    
-    // API KEY GROQ (Llama 3.1)
-    const apiKey = "gsk_XlWstnO4x63D0i9I2o53WGdyb3FYN1X4fG89jU0Kz7L7M3Q"; 
+    <script>
+        const { Client, Databases, ID } = Appwrite;
+        const client = new Client().setEndpoint('https://sgp.cloud.appwrite.io/v1').setProject('tenderwin'); 
+        const db = new Databases(client);
 
-    if(!name || !input) return alert("Lengkapi judul dan detail proyek!");
+        if (!localStorage.getItem('user_phone')) { window.location.href = 'index.html'; }
 
-    // UI Loading State
-    document.getElementById('loader').classList.remove('hidden');
-    document.getElementById('resultArea').classList.add('hidden');
-    btn.disabled = true;
+        async function generate() {
+            const name = document.getElementById('projName').value;
+            const input = document.getElementById('rawInput').value;
+            const btn = document.getElementById('btnGen');
+            const apiKey = "gsk_XlWstnO4x63D0i9I2o53WGdyb3FYN1X4fG89jU0Kz7L7M3Q"; 
 
-    try {
-        // A. PROSES AI (LLAMA 3.1 70B)
-        const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-            method: "POST",
-            headers: { 
-                "Authorization": `Bearer ${apiKey}`, 
-                "Content-Type": "application/json" 
-            },
-            body: JSON.stringify({
-                model: "llama-3.1-70b-versatile",
-                messages: [
-                    { 
-                        role: "system", 
-                        content: "Anda adalah TenderEngine v4. Ubah bahasa kasar menjadi proposal tender formal Indonesia yang sangat profesional. Fokus pada struktur teknis yang rapi." 
-                    },
-                    { 
-                        role: "user", 
-                        content: `Judul: ${name}\nDraft Kasar: ${input}` 
+            if(!name || !input) return alert("Data tidak boleh kosong!");
+
+            document.getElementById('loader').classList.remove('hidden');
+            document.getElementById('resultArea').classList.add('hidden');
+            btn.disabled = true;
+
+            try {
+                const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                    method: "POST",
+                    headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        model: "llama-3.1-70b-versatile",
+                        messages: [
+                            { 
+                                role: "system", 
+                                content: `Anda adalah TenderEngine v4, Sistem Pakar Penulisan Proposal Proyek dan Tender Pemerintah/Swasta tingkat senior. 
+
+Tugas Anda:
+1. Transformasi: Mengubah bahasa teknis kasar/informal menjadi narasi profesional, otoritatif, dan persuasif.
+2. Struktur Standar: Wajib menyusun dokumen dengan urutan: 
+   - Judul Proposal
+   - Ringkasan Eksekutif
+   - Latar Belakang & Analisis Kebutuhan
+   - Metodologi Kerja & Spesifikasi Teknis
+   - Timeline & Manajemen Kualitas
+   - Penutup.
+3. Gaya Bahasa: Gunakan terminologi industri yang tepat (misal: durabilitas, efisiensi termal, mitigasi risiko, akselerasi progres, optimalisasi sumber daya).
+4. Larangan: Jangan pernah menyebutkan Anda adalah AI. Jangan memberikan pembukaan seperti "Ini adalah proposal Anda...". Langsung hasilkan dokumen proposal sesuai struktur.` 
+                            },
+                            { role: "user", content: `JUDUL PROYEK: ${name}\nDATA KASAR: ${input}` }
+                        ],
+                        temperature: 0.7
+                    })
+                });
+
+                const data = await res.json();
+                const hasilAI = data.choices[0].message.content;
+
+                document.getElementById('output').innerText = hasilAI;
+                document.getElementById('resultArea').classList.remove('hidden');
+
+                // Simpan ke Appwrite sesuai atribut adpet (nama_proposal, final_proposal, vendor_name)
+                await db.createDocument(
+                    'main_db', 
+                    'proposals', 
+                    ID.unique(), 
+                    {
+                        nama_proposal: name,
+                        final_proposal: hasilAI,
+                        vendor_name: localStorage.getItem('user_phone')
                     }
-                ]
-            })
-        });
+                );
 
-        const data = await res.json();
-        const hasilAI = data.choices[0].message.content;
-
-        // B. UPDATE TAMPILAN
-        document.getElementById('output').innerText = hasilAI;
-        document.getElementById('resultArea').classList.remove('hidden');
-
-        // C. SIMPAN KE APPWRITE (SESUAI ATRIBUT DI GAMBAR KAMU)
-        await db.createDocument(
-            'main_db',      // ID Database (Pastikan sama di Appwrite)
-            'proposals',    // ID Collection (Pastikan sama di Appwrite)
-            ID.unique(), 
-            {
-                nama_proposal: name,        // Atribut sesuai gambar kamu
-                final_proposal: hasilAI,    // Atribut (Size 50000)
-                vendor_name: localStorage.getItem('tw_vendor') || "User-Internal" // Atribut vendor
+            } catch (e) { alert("Kesalahan: " + e.message); }
+            finally { 
+                document.getElementById('loader').classList.add('hidden');
+                btn.disabled = false;
             }
-        );
+        }
 
-        console.log("Data Berhasil di-Firebase ke Appwrite!");
+        function copy() {
+            navigator.clipboard.writeText(document.getElementById('output').innerText);
+            alert("Proposal berhasil disalin ke clipboard!");
+        }
 
-    } catch (error) { 
-        console.error("Error Detail:", error);
-        alert("Gagal koneksi! Cek API Key atau Atribut Database."); 
-    } finally { 
-        document.getElementById('loader').classList.add('hidden');
-        btn.disabled = false;
-    }
-}
-
-// --- 3. FUNGSI COPY CLIPBOARD ---
-function copy() {
-    const text = document.getElementById('output').innerText;
-    navigator.clipboard.writeText(text);
-    alert("Proposal berhasil disalin!");
-}
+        function logout() {
+            localStorage.clear();
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>
