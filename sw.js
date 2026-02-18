@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tw-v4-static';
+const CACHE_NAME = 'tw-v4-cache';
 const assets = ['/', '/index.html', '/dashboard.html'];
 
 self.addEventListener('install', e => {
