@@ -2,24 +2,38 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>TenderWin Workstation</title>
+    <title>TenderWin Enterprise | Workstation</title>
     <script src="https://cdn.jsdelivr.net/npm/appwrite@13.0.1"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-950 text-white p-6">
-    <div class="max-w-3xl mx-auto space-y-6">
-        <div class="bg-slate-900 p-10 rounded-[3rem] border border-slate-800">
-            <h1 class="text-2xl font-black text-blue-500 mb-6 uppercase tracking-tighter italic">TenderWin Engine v4</h1>
-            <input id="title" type="text" placeholder="Judul Proyek" class="w-full p-4 bg-slate-950 border border-slate-800 rounded-2xl mb-4 text-white font-bold">
-            <textarea id="brief" rows="6" placeholder="Rincian kasar proyek..." class="w-full p-4 bg-slate-950 border border-slate-800 rounded-2xl mb-6 text-white"></textarea>
-            <button id="btn" onclick="gas()" class="w-full py-5 bg-blue-600 rounded-[2rem] font-black text-xl shadow-lg shadow-blue-500/20 active:scale-95 transition-all">GENERATE PROPOSAL SENIOR</button>
-        </div>
+<body class="bg-[#020617] text-slate-200 p-8 font-sans">
+    <div class="max-w-4xl mx-auto space-y-8">
+        <header class="flex justify-between items-center border-b border-slate-800 pb-6">
+            <h1 class="text-3xl font-black text-blue-500 italic uppercase">TenderWin <span class="text-white">v4</span></h1>
+            <button onclick="localStorage.clear(); location.href='index.html'" class="text-[10px] font-bold border border-red-900 text-red-500 px-4 py-2 rounded-full hover:bg-red-950">LOGOUT</button>
+        </header>
 
-        <div id="wait" class="hidden text-center py-10 animate-pulse text-blue-400 font-bold uppercase text-xs tracking-widest">TenderEngine sedang mengonstruksi narasi strategis...</div>
+        <section class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="space-y-4 bg-slate-900/50 p-8 rounded-[2rem] border border-slate-800">
+                <h3 class="font-black text-xs uppercase tracking-[0.3em] text-blue-400">Input Project</h3>
+                <input id="title" type="text" placeholder="Judul Tender/Proyek..." class="w-full p-4 bg-slate-950 border border-slate-800 rounded-xl outline-none focus:border-blue-600 font-bold">
+                <textarea id="brief" rows="8" placeholder="Spesifikasi teknis kasar atau keinginan client..." class="w-full p-4 bg-slate-950 border border-slate-800 rounded-xl outline-none focus:border-blue-600"></textarea>
+                <button id="btn" onclick="generate()" class="w-full py-5 bg-blue-600 rounded-2xl font-black text-lg shadow-lg shadow-blue-500/20 hover:scale-[1.02] transition-transform">GENERATE PROPOSAL SENIOR</button>
+            </div>
 
-        <div id="resultArea" class="hidden bg-white text-slate-900 p-10 rounded-[3rem] shadow-2xl">
-            <div id="out" class="whitespace-pre-wrap leading-relaxed text-sm font-medium"></div>
-        </div>
+            <div id="wait" class="hidden flex flex-col items-center justify-center p-8 text-center animate-pulse">
+                <div class="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+                <p class="text-xs font-bold uppercase tracking-widest text-blue-400">TenderEngine sedang merancang strategi...</p>
+            </div>
+
+            <div id="resultArea" class="hidden space-y-4 bg-white text-slate-900 p-8 rounded-[2rem] shadow-2xl overflow-y-auto max-h-[600px]">
+                <div class="flex justify-between items-center border-b pb-4 mb-4">
+                    <span class="text-[10px] font-black bg-blue-100 text-blue-700 px-3 py-1 rounded-full uppercase">Final Document</span>
+                    <button onclick="navigator.clipboard.writeText(document.getElementById('out').innerText); alert('Tersalin!')" class="text-xs font-bold text-blue-600">COPY</button>
+                </div>
+                <div id="out" class="text-sm leading-relaxed whitespace-pre-wrap font-medium"></div>
+            </div>
+        </section>
     </div>
 
     <script>
@@ -27,16 +41,16 @@
         const functions = new Appwrite.Functions(client);
         const db = new Appwrite.Databases(client);
 
-        async function gas() {
+        async function generate() {
             const title = document.getElementById('title').value;
             const brief = document.getElementById('brief').value;
-            if(!title || !brief) return alert("Isi dulu anjing!");
+            if(!title || !brief) return alert("Isi data dulu!");
 
             document.getElementById('wait').classList.remove('hidden');
             document.getElementById('resultArea').classList.add('hidden');
 
             try {
-                // ID Function: generateProposal
+                // SESUAIKAN ID FUNCTION LO DI APPWRITE
                 const exec = await functions.createExecution('generateProposal', JSON.stringify({ title, brief }));
                 const res = JSON.parse(exec.responseBody);
 
@@ -49,7 +63,7 @@
                         final_proposal: res.proposal,
                         vendor_name: localStorage.getItem('wa') || "User"
                     });
-                } else { alert("AI Gagal: " + res.error); }
+                } else { alert("AI Error: " + res.error); }
             } catch (e) { alert("Sistem Error: " + e.message); }
             finally { document.getElementById('wait').classList.add('hidden'); }
         }
