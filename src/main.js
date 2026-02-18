@@ -1,10 +1,7 @@
 export default async ({ req, res, log, error }) => {
-  // Ambil API Key dari Environment Variables yang lo input tadi
   const GROQ_KEY = process.env.GROQ_API_KEY;
 
-  if (req.method !== 'POST') {
-    return res.json({ success: false, error: 'Harus POST anjing!' });
-  }
+  if (req.method !== 'POST') return res.json({ success: false, error: 'Wajib POST!' });
 
   try {
     const { title, brief } = JSON.parse(req.body);
@@ -20,28 +17,26 @@ export default async ({ req, res, log, error }) => {
         messages: [
           { 
             role: "system", 
-            content: `Anda adalah TenderEngine v4, Sistem Pakar Penulisan Proposal Proyek senior. 
-            Tugas: Transformasi data kasar menjadi narasi profesional, otoritatif, dan persuasif. 
-            Struktur: Judul, Ringkasan Eksekutif, Latar Belakang, Metodologi, Timeline, Penutup. 
-            Bahasa: Formal Indonesia. Larangan: Jangan sebut Anda AI!` 
+            content: `Anda adalah Chief Strategy Officer & Pakar Tender Senior. 
+            Tugas: Mengonversi draf kasar menjadi proposal bisnis pemenang tender.
+            Prinsip: Gunakan bahasa persuasif, otoritatif, dan high-level business Indonesian.
+            Struktur: 
+            1. Executive Summary (High impact).
+            2. Value Proposition & Analisis Masalah.
+            3. Metodologi Eksekusi (Langkah teknis detail).
+            4. Mitigasi Risiko & Quality Assurance.
+            5. Timeline Strategis & Penutup.
+            Larangan: Jangan sebut Anda AI. Langsung hasilkan dokumen siap cetak.` 
           },
-          { role: "user", content: `JUDUL: ${title}\nDATA KASAR: ${brief}` }
+          { role: "user", content: `PROYEK: ${title}\nRINCIAN: ${brief}` }
         ],
-        temperature: 0.7
+        temperature: 0.65
       })
     });
 
     const data = await groqRes.json();
-    
-    if (!data.choices) throw new Error('API Groq bermasalah!');
-
-    return res.json({
-      success: true,
-      proposal: data.choices[0].message.content
-    });
-
+    return res.json({ success: true, proposal: data.choices[0].message.content });
   } catch (err) {
-    error(err.message);
     return res.json({ success: false, error: err.message });
   }
 };
